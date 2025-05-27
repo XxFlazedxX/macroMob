@@ -57,6 +57,6 @@ end
 runService.RenderStepped:Connect(function()
     local rope = getRope()
     if rope then
-        rope.Length = pulling and 3 or 10000000
+        rope.Length = pulling and 5 or 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
     end
 end)
