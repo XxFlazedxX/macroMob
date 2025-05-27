@@ -1,0 +1,62 @@
+-- Grapple Macro (Clean Version) by Snowdealer
+local player = game.Players.LocalPlayer
+local runService = game:GetService("RunService")
+
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "SnowGrappleMacroOnly"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 240, 0, 80)
+frame.Position = UDim2.new(0, 30, 0, 150)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+frame.BackgroundTransparency = 0.1
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- Label oben
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(1, 0, 0, 20)
+label.Position = UDim2.new(0, 0, 0, 0)
+label.BackgroundTransparency = 1
+label.Text = "Made by Flazed"
+label.TextColor3 = Color3.fromRGB(255, 255, 255)
+label.Font = Enum.Font.Gotham
+label.TextSize = 14
+label.Parent = frame
+
+-- Pull Button
+local pulling = false
+local pullButton = Instance.new("TextButton")
+pullButton.Size = UDim2.new(0, 220, 0, 40)
+pullButton.Position = UDim2.new(0, 10, 0, 30)
+pullButton.Text = "Macro: OFF"
+pullButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+pullButton.TextColor3 = Color3.new(1, 1, 1)
+pullButton.Font = Enum.Font.Gotham
+pullButton.TextSize = 16
+pullButton.Parent = frame
+pullButton.MouseButton1Click:Connect(function()
+    pulling = not pulling
+    pullButton.Text = pulling and "Macro: ON" or "Macro: OFF"
+end)
+
+-- Rope holen
+local function getRope()
+    local ropesFolder = workspace:FindFirstChild("Ropes")
+    if not ropesFolder then return nil end
+    local userRope = ropesFolder:FindFirstChild(player.Name)
+    if not userRope then return nil end
+    return userRope:FindFirstChild("mainConnectionRope")
+end
+
+-- MAIN LOOP
+runService.RenderStepped:Connect(function()
+    local rope = getRope()
+    if rope then
+        rope.Length = pulling and 3 or 10000000
+    end
+end)
