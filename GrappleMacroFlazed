@@ -1,10 +1,10 @@
--- Grapple Macro (Clean Version) by Snowdealer
+-- Grapple Macro (Clean Version) by Flazed
 local player = game.Players.LocalPlayer
 local runService = game:GetService("RunService")
 
 -- GUI Setup
 local gui = Instance.new("ScreenGui")
-gui.Name = "SnowGrappleMacroOnly"
+gui.Name = "FlazedMacroOnly"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
