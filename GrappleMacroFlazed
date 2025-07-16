@@ -1,62 +1,210 @@
--- Grapple Macro (Clean Version) by Flazed
-local player = game.Players.LocalPlayer
+local player = game.Players.LocalPlayer 
 local runService = game:GetService("RunService")
 
--- GUI Setup
+-- GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "FlazedGrappleMacroOnly"
+gui.Name = "FlazedMenu"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 240, 0, 80)
+frame.Size = UDim2.new(0, 200, 0, 120)
 frame.Position = UDim2.new(0, 30, 0, 150)
-frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-frame.BackgroundTransparency = 0.5
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.BackgroundTransparency = 0
 frame.Active = true
 frame.Draggable = true
+frame.BorderSizePixel = 0
 frame.Parent = gui
 
--- Label oben
+-- Label
 local label = Instance.new("TextLabel")
 label.Size = UDim2.new(1, 0, 0, 20)
 label.Position = UDim2.new(0, 0, 0, 0)
 label.BackgroundTransparency = 1
-label.Text = "Nigga Made By Flazed"
+label.Text = "˜”*°•.˜”*°• Made By Flazed •°*”˜.•°*”˜"
 label.TextColor3 = Color3.fromRGB(255, 255, 255)
 label.Font = Enum.Font.Gotham
-label.TextSize = 14
+label.TextSize = 12
 label.Parent = frame
 
--- Pull Button
+-- Macro Button
 local pulling = false
-local pullButton = Instance.new("TextButton")
-pullButton.Size = UDim2.new(0, 220, 0, 40)
-pullButton.Position = UDim2.new(0, 10, 0, 30)
-pullButton.Text = "Macro: OFF"
-pullButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-pullButton.TextColor3 = Color3.new(1, 1, 1)
-pullButton.Font = Enum.Font.Gotham
-pullButton.TextSize = 16
-pullButton.Parent = frame
-pullButton.MouseButton1Click:Connect(function()
-    pulling = not pulling
-    pullButton.Text = pulling and "Macro: ON" or "Macro: OFF"
+local macroBtn = Instance.new("TextButton")
+macroBtn.Size = UDim2.new(0.9, 0, 0, 20)
+macroBtn.Position = UDim2.new(0.05, 0, 0, 20)
+macroBtn.Text = "Macro: OFF"
+macroBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+macroBtn.TextColor3 = Color3.new(1, 1, 1)
+macroBtn.Font = Enum.Font.Gotham
+macroBtn.TextSize = 13
+macroBtn.BorderSizePixel = 0
+macroBtn.Parent = frame
+
+macroBtn.MouseButton1Click:Connect(function()
+	pulling = not pulling
+	macroBtn.Text = pulling and "Macro: ON" or "Macro: OFF"
 end)
 
--- Rope holen
+-- Speed Box
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.new(0.45, -2, 0, 18)
+speedBox.Position = UDim2.new(0.05, 0, 0, 45)
+speedBox.Text = "Speed: 16"
+speedBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+speedBox.TextColor3 = Color3.new(1, 1, 1)
+speedBox.Font = Enum.Font.Gotham
+speedBox.TextSize = 11
+speedBox.ClearTextOnFocus = false
+speedBox.Parent = frame
+
+speedBox.FocusLost:Connect(function()
+	local number = speedBox.Text:match("Speed:%s*(%d+)")
+	local speed = tonumber(number)
+	if speed and player.Character and player.Character:FindFirstChild("Humanoid") then
+		player.Character.Humanoid.WalkSpeed = speed
+		speedBox.Text = "Speed: " .. speed
+	else
+		speedBox.Text = "Speed: 16"
+	end
+end)
+
+speedBox:GetPropertyChangedSignal("Text"):Connect(function()
+	if not speedBox:IsFocused() then return end
+	if not speedBox.Text:match("^Speed:") then
+		local number = speedBox.Text:match("%d+") or "16"
+		speedBox.Text = "Speed: " .. number
+	end
+end)
+
+-- TP Tool Button
+local tpBtn = Instance.new("TextButton")
+tpBtn.Size = UDim2.new(0.45, -2, 0, 18)
+tpBtn.Position = UDim2.new(0.5, 2, 0, 45)
+tpBtn.Text = "Get TP Tool"
+tpBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+tpBtn.TextColor3 = Color3.new(1, 1, 1)
+tpBtn.Font = Enum.Font.Gotham
+tpBtn.TextSize = 11
+tpBtn.Parent = frame
+
+tpBtn.MouseButton1Click:Connect(function()
+	local tool = Instance.new("Tool")
+	tool.RequiresHandle = false
+	tool.Name = "TP Tool"
+	tool.Parent = player.Backpack
+	tool.Activated:Connect(function()
+		local mouse = player:GetMouse()
+		if mouse and mouse.Hit then
+			player.Character:MoveTo(mouse.Hit.p + Vector3.new(0, 3, 0))
+		end
+	end)
+end)
+
+-- Kill Button (taller)
+local killBtn = Instance.new("TextButton")
+killBtn.Size = UDim2.new(0.44, -2, 0, 22)
+killBtn.Position = UDim2.new(0.05, 0, 1, -24)
+killBtn.Text = "Kill: OFF"
+killBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+killBtn.TextColor3 = Color3.new(1, 1, 1)
+killBtn.Font = Enum.Font.Gotham
+killBtn.TextSize = 11
+killBtn.BorderSizePixel = 0
+killBtn.Parent = frame
+
+local killOn = false
+killBtn.MouseButton1Click:Connect(function()
+	killOn = not killOn
+	killBtn.Text = "Kill: " .. (killOn and "ON" or "OFF")
+
+	local damagePart = workspace:FindFirstChild("Pit") and workspace.Pit:FindFirstChild("Damage")
+	if damagePart then
+		damagePart.Size = killOn and Vector3.new(1000000000000, 1000000000000, 1000000000000) or Vector3.new(0, 0, 0)
+	end
+end)
+
+-- Touch Button (taller)
+local touchBtn = Instance.new("TextButton")
+touchBtn.Size = UDim2.new(0.44, -2, 0, 22)
+touchBtn.Position = UDim2.new(0.51, 2, 1, -24)
+touchBtn.Text = "Touch: OFF"
+touchBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+touchBtn.TextColor3 = Color3.new(1, 1, 1)
+touchBtn.Font = Enum.Font.Gotham
+touchBtn.TextSize = 11
+touchBtn.BorderSizePixel = 0
+touchBtn.Parent = frame
+
+local touchOff = false
+touchBtn.MouseButton1Click:Connect(function()
+	touchOff = not touchOff
+	touchBtn.Text = "Touch: " .. (touchOff and "ON" or "OFF")
+
+	for _, v in pairs(player.Character:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.CanTouch = not touchOff
+			v.CanCollide = not touchOff
+		end
+	end
+end)
+
+-- Grapple Logic
 local function getRope()
-    local ropesFolder = workspace:FindFirstChild("Ropes")
-    if not ropesFolder then return nil end
-    local userRope = ropesFolder:FindFirstChild(player.Name)
-    if not userRope then return nil end
-    return userRope:FindFirstChild("mainConnectionRope")
+	local ropesFolder = workspace:FindFirstChild("Ropes")
+	if not ropesFolder then return nil end
+	local userRope = ropesFolder:FindFirstChild(player.Name)
+	if not userRope then return nil end
+	return userRope:FindFirstChild("mainConnectionRope")
 end
 
--- MAIN LOOP
 runService.RenderStepped:Connect(function()
-    local rope = getRope()
-    if rope then
-        rope.Length = pulling and 5 or 1000000000000000000
-    end
+	local rope = getRope()
+	if rope then
+		rope.Length = pulling and 5 or 1000000000000
+	end
 end)
+
+-- HIDE / SHOW Main GUI Toggle (Clean version)
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 30, 0, 30)
+toggleBtn.Position = UDim2.new(0.5, -15, 0.5, -15)
+toggleBtn.Text = "+"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.Font = Enum.Font.Gotham
+toggleBtn.TextSize = 18
+toggleBtn.BorderSizePixel = 0
+toggleBtn.Visible = false
+toggleBtn.Active = true
+toggleBtn.Draggable = true
+toggleBtn.Parent = gui
+
+local function setGuiVisible(state)
+	for _, v in pairs(frame:GetChildren()) do
+		v.Visible = state
+	end
+	frame.Visible = state
+	toggleBtn.Visible = not state
+end
+
+-- Add X button (outside top-right corner of GUI, slightly closer)
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size = UDim2.new(0, 20, 0, 20)
+hideBtn.Position = UDim2.new(1, -10, 0, -10)
+hideBtn.Text = "X"
+hideBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+hideBtn.TextColor3 = Color3.new(1, 1, 1)
+hideBtn.Font = Enum.Font.Gotham
+hideBtn.TextSize = 13
+hideBtn.BorderSizePixel = 0
+hideBtn.Parent = frame
+
+hideBtn.MouseButton1Click:Connect(function()
+	setGuiVisible(false)
+end)
+
+toggleBtn.MouseButton1Click:Connect(function()
+	setGuiVisible(true)
+end)
+
