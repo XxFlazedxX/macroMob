@@ -127,10 +127,10 @@ flingText.Parent = frame
 
 -- Toggle Button
 local toggleCircle = Instance.new("TextButton")
-toggleCircle.Size = UDim2.new(0, 20, 0, 20)
-toggleCircle.Position = UDim2.new(0.8, 5, 0, 70)
+toggleCircle.Size = UDim2.new(0, 30, 0, 20)
+toggleCircle.Position = UDim2.new(0.78, 4, 0, 70)
 toggleCircle.Text = "OFF"
-toggleCircle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+toggleCircle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 toggleCircle.TextColor3 = Color3.new(1, 1, 1)
 toggleCircle.Font = Enum.Font.Gotham
 toggleCircle.TextSize = 10
@@ -139,16 +139,19 @@ toggleCircle.Parent = frame
 
 local flingOn = false
 local flingStartTime = 0
-local originalPos = nil
+local originalPosition = nil
 
 -- Toggle Logic
 toggleCircle.MouseButton1Click:Connect(function()
 	flingOn = not flingOn
 	toggleCircle.Text = flingOn and "ON" or "OFF"
 
-	if flingOn and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-		originalPos = player.Character.HumanoidRootPart.CFrame
+	if flingOn then
 		flingStartTime = tick()
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if root then
+			originalPosition = root.Position
+		end
 	end
 end)
 
@@ -165,33 +168,26 @@ runService.RenderStepped:Connect(function()
 		local targetName = flingText.Text:gsub("Fling:%s*", "")
 		local targetPlayer = game.Players:FindFirstChild(targetName)
 
-		if targetPlayer and targetPlayer ~= player and targetPlayer.Character then
-			local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-			local targetHum = targetPlayer.Character:FindFirstChild("Humanoid")
-			local myChar = player.Character
-			local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
+		if targetPlayer and targetPlayer ~= player and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			local targetHRP = targetPlayer.Character.HumanoidRootPart
+			local targetHumanoid = targetPlayer.Character:FindFirstChild("Humanoid")
+			local myHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 
-			if targetHRP and myHRP and targetHum and targetHum.Health > 0 then
-				myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 0)
-				myHRP.Velocity = Vector3.new(0, 0, 0)
-				myHRP.RotVelocity = Vector3.new(500, 500, 500)
+			if myHRP and targetHRP then
+				myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, -1)
+				targetHRP.Velocity = Vector3.new(9999, 9999, 9999)
+			end
 
-				for _, part in pairs(myChar:GetDescendants()) do
-					if part:IsA("BasePart") then
-						part.Velocity = Vector3.new(0, 0, 0)
-						part.RotVelocity = Vector3.new(99999, 99999, 99999)
-					end
-				end
+			-- Auto-stop after 3 seconds or if target dies
+			if tick() - flingStartTime > 3 or (targetHumanoid and targetHumanoid.Health <= 0) then
+				flingOn = false
+				toggleCircle.Text = "OFF"
 
-				-- Stop fling after 3 seconds
-				if tick() - flingStartTime > 3 or targetHum.Health <= 0 then
-					flingOn = false
-					toggleCircle.Text = "OFF"
-					if originalPos then
-						myHRP.CFrame = originalPos
-					end
+				if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and originalPosition then
+					player.Character.HumanoidRootPart.CFrame = CFrame.new(originalPosition)
 				end
 			end
+		end
 	end
 end)
 
@@ -294,5 +290,3 @@ end)
 toggleBtn.MouseButton1Click:Connect(function()
 	setGuiVisible(true)
 end)
-
-
