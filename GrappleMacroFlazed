@@ -101,6 +101,17 @@ tpBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
+-- Label
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(1, 0, 0, 20)
+label.Position = UDim2.new(0, 0, 0, 0)
+label.BackgroundTransparency = 1
+label.Text = "˜”*°•.˜”*°• Made By Flazed •°*”˜.•°*”˜"
+label.TextColor3 = Color3.fromRGB(255, 255, 255)
+label.Font = Enum.Font.Gotham
+label.TextSize = 12
+label.Parent = frame
+
 -- Fling TextBox
 local flingText = Instance.new("TextBox")
 flingText.Size = UDim2.new(0.7, 0, 0, 20)
@@ -114,24 +125,31 @@ flingText.Text = "Fling: PlayerName"
 flingText.BorderSizePixel = 0
 flingText.Parent = frame
 
--- Toggle Button (closer)
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 30, 0, 20)
-toggleButton.Position = UDim2.new(0.75, 5, 0, 70) -- Moved a bit closer
-toggleButton.Text = "OFF"
-toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-toggleButton.Font = Enum.Font.Gotham
-toggleButton.TextSize = 11
-toggleButton.BorderSizePixel = 0
-toggleButton.Parent = frame
+-- Toggle Button
+local toggleCircle = Instance.new("TextButton")
+toggleCircle.Size = UDim2.new(0, 20, 0, 20)
+toggleCircle.Position = UDim2.new(0.8, 5, 0, 70)
+toggleCircle.Text = "OFF"
+toggleCircle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+toggleCircle.TextColor3 = Color3.new(1, 1, 1)
+toggleCircle.Font = Enum.Font.Gotham
+toggleCircle.TextSize = 10
+toggleCircle.BorderSizePixel = 0
+toggleCircle.Parent = frame
 
 local flingOn = false
+local flingStartTime = 0
+local originalPos = nil
 
 -- Toggle Logic
-toggleButton.MouseButton1Click:Connect(function()
+toggleCircle.MouseButton1Click:Connect(function()
 	flingOn = not flingOn
-	toggleButton.Text = flingOn and "ON" or "OFF"
+	toggleCircle.Text = flingOn and "ON" or "OFF"
+
+	if flingOn and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+		originalPos = player.Character.HumanoidRootPart.CFrame
+		flingStartTime = tick()
+	end
 end)
 
 -- Clear only PlayerName text
@@ -147,25 +165,35 @@ runService.RenderStepped:Connect(function()
 		local targetName = flingText.Text:gsub("Fling:%s*", "")
 		local targetPlayer = game.Players:FindFirstChild(targetName)
 
-		if targetPlayer and targetPlayer ~= player and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		if targetPlayer and targetPlayer ~= player and targetPlayer.Character then
 			local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-			local myHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			local targetHum = targetPlayer.Character:FindFirstChild("Humanoid")
+			local myChar = player.Character
+			local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
 
-			if targetHRP and myHRP then
-				-- Move into them
+			if targetHRP and myHRP and targetHum and targetHum.Health > 0 then
 				myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 0)
+				myHRP.Velocity = Vector3.new(0, 0, 0)
+				myHRP.RotVelocity = Vector3.new(500, 500, 500)
 
-				-- Give YOURSELF high velocity so when you touch, they fling
-				myHRP.Velocity = Vector3.new(99999,99999,99999)
-				myHRP.RotVelocity = Vector3.new(99999,99999,99999)
+				for _, part in pairs(myChar:GetDescendants()) do
+					if part:IsA("BasePart") then
+						part.Velocity = Vector3.new(0, 0, 0)
+						part.RotVelocity = Vector3.new(99999, 99999, 99999)
+					end
+				end
+
+				-- Stop fling after 3 seconds
+				if tick() - flingStartTime > 3 or targetHum.Health <= 0 then
+					flingOn = false
+					toggleCircle.Text = "OFF"
+					if originalPos then
+						myHRP.CFrame = originalPos
+					end
+				end
 			end
-		end
 	end
 end)
-
-
-
-
 
 -- Kill Button
 local killBtn = Instance.new("TextButton")
