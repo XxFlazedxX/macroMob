@@ -101,27 +101,38 @@ tpBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
--- Anti Grapple Kill Toggle Button
-local antiGK = false
-local antiGKBtn = Instance.new("TextButton")
-antiGKBtn.Size = UDim2.new(0.9, 0, 0, 20)
-antiGKBtn.Position = UDim2.new(0.05, 0, 0, 70)
-antiGKBtn.Text = "Anti GK: OFF"
-antiGKBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-antiGKBtn.TextColor3 = Color3.new(1, 1, 1)
-antiGKBtn.Font = Enum.Font.Gotham
-antiGKBtn.TextSize = 13
-antiGKBtn.BorderSizePixel = 0
-antiGKBtn.Parent = frame
+-- Auto Shield When Grappled (2 seconds ungrappleable)
+local shielding = false
+local shieldCooldown = 2
 
-antiGKBtn.MouseButton1Click:Connect(function()
-	antiGK = not antiGK
-	antiGKBtn.Text = "Anti GK: " .. (antiGK and "ON" or "OFF")
-end)
+local function activateShield()
+	if shielding then return end
+	shielding = true
 
--- Anti Grapple Kill Logic
+	-- Disable grapple effects
+	for _, v in pairs(player.Character:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.CanTouch = false
+			v.CanCollide = false
+		end
+	end
+
+	wait(shieldCooldown)
+
+	-- Re-enable normal state
+	for _, v in pairs(player.Character:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.CanTouch = true
+			v.CanCollide = true
+		end
+	end
+
+	shielding = false
+end
+
+-- Grapple detection hook
 runService.RenderStepped:Connect(function()
-	if not antiGK then return end
+	if shielding then return end
 
 	local ropesFolder = workspace:FindFirstChild("Ropes")
 	if not ropesFolder then return end
@@ -132,16 +143,14 @@ runService.RenderStepped:Connect(function()
 			if rope and rope:IsA("RopeConstraint") and rope.Attachment1 and rope.Attachment1.Parent then
 				local part = rope.Attachment1.Parent
 				if part:IsDescendantOf(player.Character) then
-					-- Dodge to the side quickly
-					local root = player.Character:FindFirstChild("HumanoidRootPart")
-					if root then
-						root.CFrame = root.CFrame + root.CFrame.RightVector * 3
-					end
+					activateShield()
+					break
 				end
 			end
 		end
 	end
 end)
+
 
 -- Kill Button (taller)
 local killBtn = Instance.new("TextButton")
