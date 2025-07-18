@@ -28,22 +28,22 @@ label.Font = Enum.Font.Gotham
 label.TextSize = 12
 label.Parent = frame
 
--- Macro Button
-local pulling = false
-local macroBtn = Instance.new("TextButton")
-macroBtn.Size = UDim2.new(0.9, 0, 0, 20)
-macroBtn.Position = UDim2.new(0.05, 0, 0, 20)
-macroBtn.Text = "Macro: OFF"
-macroBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-macroBtn.TextColor3 = Color3.new(1, 1, 1)
-macroBtn.Font = Enum.Font.Gotham
-macroBtn.TextSize = 13
-macroBtn.BorderSizePixel = 0
-macroBtn.Parent = frame
+-- Pull Button (replaces Macro)
+local pullActive = false
+local pullButton = Instance.new("TextButton")
+pullButton.Size = UDim2.new(0.9, 0, 0, 20)
+pullButton.Position = UDim2.new(0.05, 0, 0, 20)
+pullButton.Text = "Throw: OFF"
+pullButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+pullButton.TextColor3 = Color3.new(1, 1, 1)
+pullButton.Font = Enum.Font.Gotham
+pullButton.TextSize = 13
+pullButton.BorderSizePixel = 0
+pullButton.Parent = frame
 
-macroBtn.MouseButton1Click:Connect(function()
-	pulling = not pulling
-	macroBtn.Text = pulling and "Macro: ON" or "Macro: OFF"
+pullButton.MouseButton1Click:Connect(function()
+	pullActive = not pullActive
+	pullButton.Text = pullActive and "Pull: ON" or "Throw: OFF"
 end)
 
 -- Speed Box
@@ -101,58 +101,43 @@ tpBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
--- Auto Shield When Grappled (2 seconds ungrappleable)
-local shielding = false
-local shieldCooldown = 2
+-- Loopfling Input (replaces Anti GK)
+local loopflingBox = Instance.new("TextBox")
+loopflingBox.Size = UDim2.new(0.9, 0, 0, 20)
+loopflingBox.Position = UDim2.new(0.05, 0, 0, 70)
+loopflingBox.Text = "Loopfling: Enter Player Name"
+loopflingBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+loopflingBox.TextColor3 = Color3.new(1, 1, 1)
+loopflingBox.Font = Enum.Font.Gotham
+loopflingBox.TextSize = 13
+loopflingBox.BorderSizePixel = 0
+loopflingBox.ClearTextOnFocus = false
+loopflingBox.Parent = frame
 
-local function activateShield()
-	if shielding then return end
-	shielding = true
-
-	-- Disable grapple effects
-	for _, v in pairs(player.Character:GetDescendants()) do
-		if v:IsA("BasePart") then
-			v.CanTouch = false
-			v.CanCollide = false
-		end
-	end
-
-	wait(shieldCooldown)
-
-	-- Re-enable normal state
-	for _, v in pairs(player.Character:GetDescendants()) do
-		if v:IsA("BasePart") then
-			v.CanTouch = true
-			v.CanCollide = true
-		end
-	end
-
-	shielding = false
-end
-
--- Grapple detection hook
-runService.RenderStepped:Connect(function()
-	if shielding then return end
-
-	local ropesFolder = workspace:FindFirstChild("Ropes")
-	if not ropesFolder then return end
-
-	for _, ropeOwner in pairs(ropesFolder:GetChildren()) do
-		if ropeOwner:IsA("Model") and ropeOwner.Name ~= player.Name then
-			local rope = ropeOwner:FindFirstChild("mainConnectionRope")
-			if rope and rope:IsA("RopeConstraint") and rope.Attachment1 and rope.Attachment1.Parent then
-				local part = rope.Attachment1.Parent
-				if part:IsDescendantOf(player.Character) then
-					activateShield()
-					break
-				end
-			end
-		end
+loopflingBox.Focused:Connect(function()
+	if loopflingBox.Text == "Loopfling: Enter Player Name" then
+		loopflingBox.Text = "Loopfling: "
 	end
 end)
 
+loopflingBox.FocusLost:Connect(function()
+	local input = loopflingBox.Text:gsub("Loopfling:%s*", "")
+	local target = game.Players:FindFirstChild(input)
+	if target and target.Character then
+		spawn(function()
+			while wait(0.1) do
+				if not loopflingBox:IsFocused() then break end
+				local hrp = target.Character:FindFirstChild("HumanoidRootPart")
+				local myHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+				if hrp and myHRP then
+					myHRP.CFrame = hrp.CFrame + Vector3.new(0, 0.5, 0)
+				end
+			end
+		end)
+	end
+end)
 
--- Kill Button (taller)
+-- Kill Button
 local killBtn = Instance.new("TextButton")
 killBtn.Size = UDim2.new(0.44, -2, 0, 22)
 killBtn.Position = UDim2.new(0.05, 0, 1, -24)
@@ -168,14 +153,13 @@ local killOn = false
 killBtn.MouseButton1Click:Connect(function()
 	killOn = not killOn
 	killBtn.Text = "Kill: " .. (killOn and "ON" or "OFF")
-
 	local damagePart = workspace:FindFirstChild("Pit") and workspace.Pit:FindFirstChild("Damage")
 	if damagePart then
 		damagePart.Size = killOn and Vector3.new(1000000000000, 1000000000000, 1000000000000) or Vector3.new(0, 0, 0)
 	end
 end)
 
--- Touch Button (taller)
+-- Touch Button
 local touchBtn = Instance.new("TextButton")
 touchBtn.Size = UDim2.new(0.44, -2, 0, 22)
 touchBtn.Position = UDim2.new(0.51, 2, 1, -24)
@@ -191,7 +175,6 @@ local touchOff = false
 touchBtn.MouseButton1Click:Connect(function()
 	touchOff = not touchOff
 	touchBtn.Text = "Touch: " .. (touchOff and "ON" or "OFF")
-
 	for _, v in pairs(player.Character:GetDescendants()) do
 		if v:IsA("BasePart") then
 			v.CanTouch = not touchOff
@@ -200,23 +183,18 @@ touchBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Grapple Logic
-local function getRope()
-	local ropesFolder = workspace:FindFirstChild("Ropes")
-	if not ropesFolder then return nil end
-	local userRope = ropesFolder:FindFirstChild(player.Name)
-	if not userRope then return nil end
-	return userRope:FindFirstChild("mainConnectionRope")
-end
-
+-- Pull Length Logic (macro)
 runService.RenderStepped:Connect(function()
-	local rope = getRope()
-	if rope then
-		rope.Length = pulling and 5 or 1000000000000
+	local ropes = workspace:FindFirstChild("Ropes")
+	if ropes then
+		local myRope = ropes:FindFirstChild(player.Name)
+		if myRope and myRope:FindFirstChild("mainConnectionRope") then
+			myRope.mainConnectionRope.Length = pullActive and 4 or 1000000000000
+		end
 	end
 end)
 
--- HIDE / SHOW Main GUI Toggle (Clean version)
+-- GUI Toggle
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 30, 0, 30)
 toggleBtn.Position = UDim2.new(0.5, -15, 0.5, -15)
@@ -239,7 +217,7 @@ local function setGuiVisible(state)
 	toggleBtn.Visible = not state
 end
 
--- Add X button (outside top-right corner of GUI, slightly closer)
+-- X Button
 local hideBtn = Instance.new("TextButton")
 hideBtn.Size = UDim2.new(0, 20, 0, 20)
 hideBtn.Position = UDim2.new(1, -10, 0, -10)
@@ -258,4 +236,3 @@ end)
 toggleBtn.MouseButton1Click:Connect(function()
 	setGuiVisible(true)
 end)
-
