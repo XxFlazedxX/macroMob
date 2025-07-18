@@ -148,16 +148,16 @@ runService.RenderStepped:Connect(function()
 		local targetPlayer = game.Players:FindFirstChild(targetName)
 
 		if targetPlayer and targetPlayer ~= player and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-			local myHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 			local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
 
-			if myHRP and targetHRP then
-				myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 0)
-				targetHRP.Velocity = Vector3.new(9999, 9999, 9999) -- FLING FORCE
+			-- Apply fling to THEM without teleporting you
+			if targetHRP then
+				targetHRP.AssemblyLinearVelocity = Vector3.new(250, 250, 250) -- better controlled fling
 			end
 		end
 	end
 end)
+
 
 
 
@@ -260,4 +260,5 @@ end)
 toggleBtn.MouseButton1Click:Connect(function()
 	setGuiVisible(true)
 end)
+
 
