@@ -101,41 +101,61 @@ tpBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
--- Loopfling Input (replaces Anti GK)
-local loopflingBox = Instance.new("TextBox")
-loopflingBox.Size = UDim2.new(0.9, 0, 0, 20)
-loopflingBox.Position = UDim2.new(0.05, 0, 0, 70)
-loopflingBox.Text = "Loopfling: Enter Player Name"
-loopflingBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-loopflingBox.TextColor3 = Color3.new(1, 1, 1)
-loopflingBox.Font = Enum.Font.Gotham
-loopflingBox.TextSize = 13
-loopflingBox.BorderSizePixel = 0
-loopflingBox.ClearTextOnFocus = false
-loopflingBox.Parent = frame
+-- Fling TextBox
+local flingText = Instance.new("TextBox")
+flingText.Size = UDim2.new(0.7, 0, 0, 20)
+flingText.Position = UDim2.new(0.05, 0, 0, 70)
+flingText.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+flingText.TextColor3 = Color3.new(1, 1, 1)
+flingText.Font = Enum.Font.Gotham
+flingText.TextSize = 13
+flingText.ClearTextOnFocus = false
+flingText.Text = "Fling: PlayerName"
+flingText.BorderSizePixel = 0
+flingText.Parent = frame
 
-loopflingBox.Focused:Connect(function()
-	if loopflingBox.Text == "Loopfling: Enter Player Name" then
-		loopflingBox.Text = "Loopfling: "
+-- Toggle Button (closer)
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 30, 0, 20)
+toggleButton.Position = UDim2.new(0.75, 5, 0, 70) -- Moved a bit closer
+toggleButton.Text = "OFF"
+toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Font = Enum.Font.Gotham
+toggleButton.TextSize = 11
+toggleButton.BorderSizePixel = 0
+toggleButton.Parent = frame
+
+local flingOn = false
+
+-- Toggle Logic
+toggleButton.MouseButton1Click:Connect(function()
+	flingOn = not flingOn
+	toggleButton.Text = flingOn and "ON" or "OFF"
+end)
+
+-- Clear only PlayerName text
+flingText.Focused:Connect(function()
+	if flingText.Text == "Fling: PlayerName" then
+		flingText.Text = "Fling: "
 	end
 end)
 
-loopflingBox.FocusLost:Connect(function()
-	local input = loopflingBox.Text:gsub("Loopfling:%s*", "")
-	local target = game.Players:FindFirstChild(input)
-	if target and target.Character then
-		spawn(function()
-			while wait(0.1) do
-				if not loopflingBox:IsFocused() then break end
-				local hrp = target.Character:FindFirstChild("HumanoidRootPart")
-				local myHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-				if hrp and myHRP then
-					myHRP.CFrame = hrp.CFrame + Vector3.new(0, 0.5, 0)
-				end
+-- Loopfling Logic
+runService.RenderStepped:Connect(function()
+	if flingOn then
+		local targetName = flingText.Text:gsub("Fling:%s*", "")
+		local targetPlayer = game.Players:FindFirstChild(targetName)
+		if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			if root then
+				root.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1)
+				root.Velocity = Vector3.new(9999, 9999, 9999)
 			end
-		end)
+		end
 	end
 end)
+
 
 -- Kill Button
 local killBtn = Instance.new("TextButton")
@@ -236,3 +256,4 @@ end)
 toggleBtn.MouseButton1Click:Connect(function()
 	setGuiVisible(true)
 end)
+
