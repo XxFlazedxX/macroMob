@@ -149,14 +149,20 @@ runService.RenderStepped:Connect(function()
 
 		if targetPlayer and targetPlayer ~= player and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
 			local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+			local myHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 
-			-- Apply fling to THEM without teleporting you
-			if targetHRP then
-				targetHRP.AssemblyLinearVelocity = Vector3.new(250, 250, 250) -- better controlled fling
+			if targetHRP and myHRP then
+				-- Move into them
+				myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 0)
+
+				-- Give YOURSELF high velocity so when you touch, they fling
+				myHRP.Velocity = Vector3.new(99999,99999,99999)
+				myHRP.RotVelocity = Vector3.new(99999,99999,99999)
 			end
 		end
 	end
 end)
+
 
 
 
