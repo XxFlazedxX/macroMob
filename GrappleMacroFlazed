@@ -146,15 +146,19 @@ runService.RenderStepped:Connect(function()
 	if flingOn then
 		local targetName = flingText.Text:gsub("Fling:%s*", "")
 		local targetPlayer = game.Players:FindFirstChild(targetName)
-		if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-			if root then
-				root.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1)
-				root.Velocity = Vector3.new(9999, 9999, 9999)
+
+		if targetPlayer and targetPlayer ~= player and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			local myHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+			if myHRP and targetHRP then
+				myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 0)
+				targetHRP.Velocity = Vector3.new(9999, 9999, 9999) -- FLING FORCE
 			end
 		end
 	end
 end)
+
 
 
 -- Kill Button
